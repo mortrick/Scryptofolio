@@ -43,11 +43,18 @@ def getbtcval(LinkGroupID,LinkID):
 def insert_into_chartsDB(LinkGroupID,LinkID):
     bitval =  getbtcval(LinkGroupID,LinkID)
     print bitval
-    sql = "INSERT INTO charts_btc_10min (cur_Time, cur_Value) VALUES (" +"'"+ dt+"'" + "," + str(bitval) + ")"
+    sql = "INSERT INTO `charts_btc_10min_txt` (`cur_Time`, `cur_Value`) VALUES (" +"'"+ (dt) +"'" + ", " +str(bitval) + ")" +';'
     print sql
-    c = db.cursor()
-    c.execute(sql)
-    c.close()
+    try:
+        c = db.cursor()
+        c.execute(sql)
+        db.commit()
+        c.close()
+        print "Data successfully load to chart DB"
+    except:
+        print"somthing went wrong"
+
+
 
 
 insert_into_chartsDB(1,1);
