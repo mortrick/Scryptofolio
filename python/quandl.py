@@ -8,8 +8,19 @@ import datetime
 db = MySQLdb.connect("localhost","bot","bobo123","charts")
 dt = datetime.datetime.now()
 dt = str(dt)[0:16]
-print dt
+print "Executed at " + dt
 # url = "https://api.cryptowat.ch/markets/bitfinex/btcusd/price"
+
+
+def clean(link):
+
+    cleanlink = link.replace("'","").replace("(","").replace(")","").replace(",","")
+    if (len(link)<=5):
+        cleanlink[0:1]
+        return cleanlink[0:1]
+    else:
+        return cleanlink
+        print cleanlink
 
 
 
@@ -23,27 +34,46 @@ def getlinks(LinkGroupID,LinkID):
     c.execute(sql);
     for (Link) in c:
         Link = "{}".format(Link)
-        Link = Link.replace("'","").replace("(","").replace(")","").replace(",","")
+        ClLink = clean(Link)
         c.close()
-        print Link
-    return str(Link)
+        print
+        "Download from " + ClLink
+    return str(ClLink)
 
 
 #Input Link
 #Output Coin value
 def getbtcval(LinkGroupID,LinkID):
     response = urllib.urlopen(getlinks(LinkGroupID,LinkID))
-    bitjson = response.read()
-    getbtcval = bitjson[19:23]
-    print bitjson
-    print getbtcval
-    return getbtcval
+    coinjson = response.read()
+    getCoinval = coinjson[19:23]
+    print getCoinval
+    print getCoinval
+    return getCoinval
+
+
+def gettable(LinkGroupID,LinkID):
+    c = db.cursor()
+    sql = "SELECT TargetTable from links_to_download where LinkGroupID = " + str(LinkGroupID) +  " and LinkID = " + str(LinkID)
+    c.execute(sql)
+    for (TargetTable) in c:
+        TgtTable = "{}".format(TargetTable)
+        trtTable = str(TgtTable)
+    cltable = clean(trtTable)
+
+    print sql
+    print "The target table to load is " + cltable
+    return cltable
+
+
+
 
 
 def insert_into_chartsDB(LinkGroupID,LinkID):
-    bitval =  getbtcval(LinkGroupID,LinkID)
-    print bitval
-    sql = "INSERT INTO `charts_btc_10min_txt` (`cur_Time`, `cur_Value`) VALUES (" +"'"+ (dt) +"'" + ", " +str(bitval) + ")" +';'
+    coinval =  getbtcval(LinkGroupID,LinkID)
+    trttable = gettable(LinkGroupID,LinkID)
+    print coinval + " " + trttable
+    sql = "INSERT INTO " +str(trttable) + " (`cur_Time`, `cur_Value`) VALUES (" +"'"+ (dt) +"'" + ", " +str(coinval) + ")" +';'
     print sql
     try:
         c = db.cursor()
@@ -57,8 +87,22 @@ def insert_into_chartsDB(LinkGroupID,LinkID):
 
 
 
-insert_into_chartsDB(1,1);
+def etlchartscoins():
+    c = db.cursor()
+    sql = "SELECT count(*) as cnt from links_to_download"
+    print sql
+    c.execute(sql)
+    countrows = c.fetchone()
+    print clean(str(countrows))
+    #print clean(countrows)
+    #
+    #for n in range (0,countrows-1):
+    #    insert_into_chartsDB(1,n)
+    #    print "Insert from linkID " + n
 
 
 
-#getbtcval(1,1)
+    #print cntrows
+
+
+insert_into_chartsDB(1,1)
